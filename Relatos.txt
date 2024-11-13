@@ -1,0 +1,124 @@
+Para te ajudar a estruturar esse projeto, vou dividir em partes e te ajudar a identificar as principais etapas, perguntas e requisitos para o desenvolvimento do sistema. O projeto será uma aplicação simples, mas com funcionalidades de autenticação, controle de acesso e integração com o Google Drive, com uma base de dados em SQL.
+
+### **Estrutura do Projeto:**
+
+1. **Objetivo do Sistema**:
+   - O sistema é uma aplicação web que permite usuários acessarem diferentes arquivos ou pastas no Google Drive com diferentes níveis de permissão. Cada usuário terá um acesso restrito e controlado às pastas e arquivos.
+   - A autenticação será feita através da autenticação do Google, usando o OAuth 2.0.
+   - A base de dados em SQL irá armazenar informações sobre os usuários e seus níveis de acesso.
+
+---
+
+### **Tecnologias a Serem Utilizadas**:
+
+1. **Frontend** (interface com o usuário):
+   - **HTML**: Para a estruturação da página.
+   - **CSS** (opcional, para estilo da interface).
+   - **JavaScript**: Para a interação com a API do Google Drive e funcionalidades dinâmicas.
+
+2. **Backend** (servidor e lógica):
+   - **Python (Flask ou Django)**: O backend será responsável por fornecer a lógica do sistema. Usaremos Python com o Flask (para ser mais simples) ou Django (para uma estrutura mais robusta, dependendo da complexidade).
+   - **SQL**: Para armazenar dados dos usuários e informações de controle de acesso (por exemplo, um banco de dados como MySQL ou PostgreSQL).
+
+3. **API do Google Drive**:
+   - Usaremos a **Google Drive API** para manipulação de arquivos/pastas do Google Drive.
+   - O **OAuth 2.0** será utilizado para a autenticação de usuários com a conta do Google.
+
+4. **Banco de Dados**:
+   - **SQL (MySQL/PostgreSQL)**: Para manter informações sobre os usuários (e.g., e-mail, senha, permissões de acesso) e dados sobre as pastas ou arquivos que eles têm permissão para acessar.
+
+---
+
+### **Estrutura do Projeto:**
+
+#### 1. **Autenticação com Google (OAuth 2.0)**:
+
+- **Objetivo**: Permitir que o usuário se autentique usando sua conta Google. Isso vai garantir acesso às APIs do Google Drive e também será utilizado para identificar quem está logado no sistema.
+
+  **Passos**:
+  - Configurar a autenticação OAuth com o Google para permitir que os usuários façam login com suas contas Google.
+  - Após login, o sistema recuperará um token de acesso que poderá ser usado para acessar os arquivos/pastas do Google Drive através da API.
+  - Para implementar isso no backend com Flask, pode-se usar a biblioteca `Flask-OAuthlib` ou `Authlib`.
+
+  **Perguntas**:
+  - Você já tem um projeto configurado no Google Developer Console para gerar as credenciais de OAuth 2.0?
+  - Você já possui uma chave de API do Google Drive?
+
+#### 2. **Base de Dados (SQL)**:
+
+- **Objetivo**: Armazenar os dados do usuário e suas permissões de acesso. A base de dados irá mapear os usuários às pastas ou arquivos no Google Drive que eles têm permissão para acessar.
+
+  **Estrutura básica do banco**:
+  - **Tabela `usuarios`**:
+    - `id` (PK)
+    - `email`
+    - `senha` (ou token de login, dependendo de como você for gerenciar a autenticação)
+    - `data_criacao`
+    - `ultimo_login`
+
+  - **Tabela `permissoes`**:
+    - `id` (PK)
+    - `usuario_id` (FK para a tabela `usuarios`)
+    - `google_drive_file_id` (ID único do arquivo/pasta no Google Drive)
+    - `permissao` (por exemplo, "leitura", "escrita")
+
+  **Perguntas**:
+  - Como você planeja gerenciar as permissões? Você quer usar níveis de acesso (leitura, gravação) ou algum outro modelo de permissão?
+
+#### 3. **Interação com o Google Drive**:
+
+- **Objetivo**: Integrar a aplicação com o Google Drive para permitir o acesso aos arquivos e pastas com base nas permissões definidas no banco de dados.
+
+  **Passos**:
+  - Utilizar a **Google Drive API** para listar arquivos e pastas.
+  - Verificar as permissões do usuário na tabela SQL e permitir o acesso apenas aos arquivos/pastas permitidos.
+  - Para isso, será necessário que o backend faça chamadas para a API Google Drive, passando o token de autenticação do usuário.
+  - O token obtido durante o login será utilizado para fazer as requisições de API com a Google Drive.
+
+  **Perguntas**:
+  - Você já está familiarizado com as APIs do Google Drive? Precisará de ajuda para configurar ou fazer as requisições?
+  - Como você gostaria de organizar os arquivos nas pastas? Você quer permitir apenas o acesso a determinados tipos de arquivos ou qualquer arquivo nas pastas específicas?
+
+#### 4. **Tela de Login e Dashboard**:
+
+- **Objetivo**: O frontend deve permitir que o usuário se autentique, visualize e interaja com seus arquivos no Google Drive com base nas permissões.
+
+  **Passos**:
+  - Criar uma tela de login onde o usuário pode se autenticar via Google.
+  - Após o login, o usuário será redirecionado para um dashboard onde poderá ver os arquivos/pastas do Google Drive aos quais tem acesso (de acordo com as permissões definidas na tabela SQL).
+  - No dashboard, é possível listar arquivos, visualizar arquivos permitidos e (dependendo das permissões) permitir upload, download ou exclusão de arquivos.
+
+  **Perguntas**:
+  - Você gostaria de permitir o upload e download de arquivos, ou apenas a visualização?
+  - Como você planeja exibir os arquivos/pastas? Como uma lista simples ou com pré-visualização dos arquivos?
+
+#### 5. **Segurança**:
+
+- **Objetivo**: Garantir que apenas usuários autenticados e com permissões adequadas possam acessar os arquivos/pastas do Google Drive.
+
+  **Considerações**:
+  - Certifique-se de que os tokens de autenticação sejam gerenciados de forma segura (utilizando tokens de acesso e refresh tokens, por exemplo).
+  - Verificar as permissões do banco de dados antes de permitir que um usuário acesse um arquivo/pasta.
+
+---
+
+### **Fluxo Básico da Aplicação**:
+
+1. **Login**: O usuário entra com sua conta Google.
+   - A aplicação redireciona o usuário para a página de login do Google.
+   - O Google autentica o usuário e devolve um token de acesso.
+
+2. **Verificação de Permissões**: O sistema verifica no banco de dados quais arquivos/pastas o usuário tem permissão para acessar.
+
+3. **Dashboard**: O usuário vê seus arquivos/pastas no Google Drive e interage de acordo com as permissões.
+
+---
+
+### **Próximos Passos**:
+
+1. **Configurar a autenticação Google (OAuth 2.0)**.
+2. **Estruturar a base de dados SQL** para armazenar usuários e permissões.
+3. **Integrar a API do Google Drive** para listar arquivos e pastas.
+4. **Desenvolver as telas de login e dashboard**.
+5. **Testar segurança e permissões** para garantir que usuários só acessem os arquivos permitidos.
+
