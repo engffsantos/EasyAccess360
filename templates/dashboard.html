@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>Bem-vindo ao Dashboard</h1>
+
+    {% if user_files %}
+        <h2>Arquivos Disponíveis:</h2>
+        <ul class="file-list">
+        {% for file in user_files %}
+            <li>
+                <a href="#">
+                    <span class="file-name">{{ file.name }}</span>  
+                    <span>({{ file.size }} bytes)</span>
+                    <br> {{ file.path }}
+                    <br>
+                     <!-- Botões para download ou outras ações (opcional) -->
+                     <a href="{{ url_for('download_file', file_id=file.id) }}" class="download-button">Download</a>
+                </a>
+            </li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>Não há arquivos disponíveis para este usuário.</p>
+    {% endif %}
+
+{% endblock %}
