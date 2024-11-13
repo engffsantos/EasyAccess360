@@ -54,6 +54,6 @@ def logout():
 
 @bp.route('/dashboard')
 @login_required
-def dashboard():
+def dashboard(files_list=None):
   #Lógica para buscar arquivos/pastas e mostrar na página
   return render_template('dashboard.html', files=files_list) #Exemplo com lista de arquivos

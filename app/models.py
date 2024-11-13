@@ -1,66 +1,65 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, create_engine
-from sqlalchemy.orm import sessionmaker, relationship
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import Column, Integer, String, ForeignKey, create_engine, text
+from sqlalchemy.future import engine
+from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
+from werkzeug.security import generate_password_hash, check_password_hash
 import os
 
-# Configurações do banco de dados (substitua com seu próprio banco de dados)
-DATABASE_URL = os.environ.get('DATABASE_URL', 'sqlite:///db.sqlite3')
+db = SQLAlchemy()  # Cria a instância do SQLAlchemy
 
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+# Função para criar as tabelas
+def create_tables(app):
+    Base = declarative_base()  # Cria a base para declaração
 
-Base = declarative_base()
-
-# Modelo para usuário
-class User(Base):
-    __tablename__ = 'users'
-    id = Column(Integer, primary_key=True, index=True)
-    email = Column(String, unique=True, index=True, nullable=False)
-    # Adicione outros atributos do usuário, como nome, data de cadastro, etc.
-    permissions = relationship("Permission", back_populates="user", cascade="all, delete-orphan")
+    class User(Base):
+        __tablename__ = 'users'
+        id = Column(Integer, primary_key=True)
+        email = Column(String, unique=True, nullable=False)
+        password = Column(String, nullable=False)
 
 
-# Modelo para permissões (cada usuário pode ter várias permissões)
-class Permission(Base):
-    __tablename__ = 'permissions'
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    # ... Outros campos para definir a permissão (leitura, escrita, etc)
-    # Exemplo:
-    arquivo_ou_pasta = Column(String, nullable=False) # Nome do arquivo ou pasta
-    tipo_acesso = Column(String, nullable=False)  # Ex: 'leitura', 'escrita'
+        def __repr__(self):
+            return f"<User {self.email}>"
 
 
-# Modelo para arquivo no Google Drive
-class GoogleDriveFile(Base):
-    __tablename__ = 'google_drive_files'
-    id = Column(Integer, primary_key=True)
-    nome_arquivo = Column(String, unique=True, nullable=False)
-    caminho = Column(String, nullable=False)
-    tipo_permissao_id = Column(Integer, ForeignKey('permissions.id')) #Associa o tipo de permissão
-    permissao = relationship("Permission", back_populates="google_drive_file", uselist=False, cascade='all,delete-orphan')
+
+    class File(Base):
+        __tablename__ = 'files'
+        id = Column(Integer, primary_key=True)
+        name = Column(String, nullable=False)
+        path = Column(String, nullable=False)
+        size = Column(Integer, nullable=False)
+        user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+        user = relationship('User', backref='files')
 
 
-# Associa o relacionamento "user" ao "permission"
-Permission.user = relationship("User", back_populates="permissions")
-
-# Associa a "permissao" a um arquivo do Google Drive
-Permission.google_drive_file = relationship("GoogleDriveFile", back_populates="permissao")
+        def __repr__(self):
+          return f"<File {self.name}>"
 
 
-def create_db_and_tables():
-    Base.metadata.create_all(engine)
+
+    # Inicializa a conexão com o banco de dados
+    Base.metadata.create_all(app=app) # Utiliza o contexto do app
+
+# ... (outras classes e funções de modelo, como funções para
+# obter usuários ou arquivos, etc.)
 
 
+# Esta função (se necessário) é para recuperar a sessão do banco de dados
 def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+    db = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    return db()
 
-# Exemplo de uso (apenas para demonstração)
-# if __name__ == "__main__":
-#     from sqlalchemy import create_engine
-#     engine = create_engine(DATABASE_URL)
-#     Base.metadata.create_all(engine)  # Cria tabelas no banco se elas não existirem.
+# Se você precisar de um método para criar o banco de dados
+# def create_database():
+#     db.create_all(app=app) # Usa a função create_all adequada
+
+
+# ... (código para criar o banco de dados ou outra lógica)
+class User:
+    pass
+
+
+class File:
+    pass
